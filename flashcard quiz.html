@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flashcard App with Flip & Options</title>
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    header {
+      font-size: 1.8em;
+      font-weight: 600;
+      margin: 15px 0;
+      color: white;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    }
+
+    /* --- Card Flip Container --- */
+    .card-container {
+      perspective: 1000px;
+    }
+
+    .flashcard {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+      width: 350px;
+      height: 250px;
+      text-align: center;
+      margin: 20px 0;
+      transform-style: preserve-3d;
+      transition: transform 0.8s;
+      position: relative;
+    }
+
+    .flashcard.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .front, .back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .front {
+      background: #fff;
+    }
+
+    .back {
+      background: #007bff;
+      color: white;
+      transform: rotateY(180deg);
+    }
+
+    .question {
+      font-size: 1.2em;
+      margin-bottom: 15px;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .option-btn {
+      background: #f4f4f9;
+      border: 2px solid #ddd;
+      padding: 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.2s;
+      width: 100%;
+    }
+
+    .option-btn:hover {
+      background: #007bff;
+      color: white;
+    }
+
+    .option-btn.correct {
+      background: #28a745;
+      color: white;
+      border-color: #28a745;
+    }
+
+    .option-btn.wrong {
+      background: #dc3545;
+      color: white;
+      border-color: #dc3545;
+    }
+
+    .controls, .form-section {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover { background: #0056b3; }
+
+    .card-number {
+      color: white;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+
+    .form-section {
+      background: rgba(255,255,255,0.9);
+      padding: 15px;
+      border-radius: 10px;
+      width: 320px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      margin-top: 20px;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .form-section input {
+      width: 90%;
+      padding: 8px;
+      margin: 6px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <header>📚 Flashcard App (Flip Edition)</header>
+
+  <div class="card-container">
+    <div class="flashcard" id="flashcard">
+      <!-- Front -->
+      <div class="front">
+        <div class="question" id="question">Question will appear here</div>
+        <div class="options" id="options"></div>
+        <button id="flipBtn">🔄 Show Answer</button>
+      </div>
+
+      <!-- Back -->
+      <div class="back">
+        <h3>✅ Correct Answer:</h3>
+        <p id="answer">Answer will appear here</p>
+        <button id="backFlipBtn">🔙 Back to Question</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button id="prevBtn">⏮️ Previous</button>
+    <button id="nextBtn">⏭️ Next</button>
+  </div>
+  <div class="card-number" id="cardNumber"></div>
+
+  <!-- Manage Flashcards -->
+  <div class="form-section">
+    <h3>📝 Manage Flashcards</h3>
+    <input type="text" id="questionInput" placeholder="Enter question" />
+    <input type="text" id="optionsInput" placeholder="Enter options (comma separated)" />
+    <input type="text" id="answerInput" placeholder="Enter correct answer" />
+    <div class="controls">
+      <button id="addBtn">Add</button>
+      <button id="editBtn">Edit</button>
+      <button id="deleteBtn">Delete</button>
+    </div>
+  </div>
+
+  <script>
+    let flashcards = [
+      {
+        question: "What does HTML stand for?",
+        options: ["HyperText Markup Language", "HighText Machine Language", "Hyper Transfer Markup Level"],
+        answer: "HyperText Markup Language"
+      },
+      {
+        question: "Capital of France?",
+        options: ["Berlin", "Madrid", "Paris", "Rome"],
+        answer: "Paris"
+      },
+      {
+        question: "Which language is used for styling web pages?",
+        options: ["HTML", "CSS", "Python", "C++"],
+        answer: "CSS"
+      },
+      {
+        question: "Which tag is used to insert a JavaScript code?",
+        options: ["<script>", "<js>", "<javascript>", "<code>"],
+        answer: "<script>"
+      }
+    ];
+
+    let currentIndex = 0;
+    const flashcard = document.getElementById("flashcard");
+    const questionDiv = document.getElementById("question");
+    const optionsDiv = document.getElementById("options");
+    const answerDiv = document.getElementById("answer");
+    const cardNumber = document.getElementById("cardNumber");
+
+    function renderCard() {
+      if (flashcards.length === 0) {
+        questionDiv.textContent = "No flashcards available.";
+        optionsDiv.innerHTML = "";
+        answerDiv.textContent = "Add new flashcards below.";
+        cardNumber.textContent = "";
+        return;
+      }
+      const card = flashcards[currentIndex];
+      questionDiv.textContent = card.question;
+      answerDiv.textContent = card.answer;
+      cardNumber.textContent = `Card ${currentIndex + 1} of ${flashcards.length}`;
+      optionsDiv.innerHTML = "";
+
+      card.options.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.textContent = opt;
+        btn.className = "option-btn";
+        btn.onclick = () => checkAnswer(btn, card.answer);
+        optionsDiv.appendChild(btn);
+      });
+
+      flashcard.classList.remove("flipped");
+    }
+
+    function checkAnswer(button, correctAnswer) {
+      const buttons = document.querySelectorAll(".option-btn");
+      buttons.forEach(b => b.disabled = true);
+      if (button.textContent === correctAnswer) {
+        button.classList.add("correct");
+      } else {
+        button.classList.add("wrong");
+        buttons.forEach(b => {
+          if (b.textContent === correctAnswer) b.classList.add("correct");
+        });
+      }
+    }
+
+    // Flip functionality
+    document.getElementById("flipBtn").addEventListener("click", () => {
+      flashcard.classList.add("flipped");
+    });
+    document.getElementById("backFlipBtn").addEventListener("click", () => {
+      flashcard.classList.remove("flipped");
+    });
+
+    // Navigation
+    document.getElementById("nextBtn").addEventListener("click", () => {
+      if (flashcards.length === 0) return;
+      currentIndex = (currentIndex + 1) % flashcards.length;
+      renderCard();
+    });
+    document.getElementById("prevBtn").addEventListener("click", () => {
+      if (flashcards.length === 0) return;
+      currentIndex = (currentIndex - 1 + flashcards.length) % flashcards.length;
+      renderCard();
+    });
+
+    // Add flashcard
+    document.getElementById("addBtn").addEventListener("click", () => {
+      const q = document.getElementById("questionInput").value.trim();
+      const opts = document.getElementById("optionsInput").value.trim().split(",");
+      const a = document.getElementById("answerInput").value.trim();
+      if (q && opts.length > 0 && a) {
+        flashcards.push({ question: q, options: opts.map(o => o.trim()), answer: a });
+        currentIndex = flashcards.length - 1;
+        renderCard();
+        document.getElementById("questionInput").value = "";
+        document.getElementById("optionsInput").value = "";
+        document.getElementById("answerInput").value = "";
+      } else {
+        alert("Please enter question, options, and answer!");
+      }
+    });
+
+    // Edit flashcard
+    document.getElementById("editBtn").addEventListener("click", () => {
+      if (flashcards.length === 0) return;
+      const q = document.getElementById("questionInput").value.trim();
+      const opts = document.getElementById("optionsInput").value.trim().split(",");
+      const a = document.getElementById("answerInput").value.trim();
+      if (q && opts.length > 0 && a) {
+        flashcards[currentIndex] = { question: q, options: opts.map(o => o.trim()), answer: a };
+        renderCard();
+      } else {
+        alert("Enter question, options, and answer to edit this card.");
+      }
+    });
+
+    // Delete flashcard
+    document.getElementById("deleteBtn").addEventListener("click", () => {
+      if (flashcards.length === 0) return;
+      flashcards.splice(currentIndex, 1);
+      if (currentIndex >= flashcards.length) currentIndex = 0;
+      renderCard();
+    });
+
+    renderCard();
+  </script>
+</body>
+</html>
