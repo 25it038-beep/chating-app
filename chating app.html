@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat App MVP</title>
+
+  <!-- Basic styling -->
+  <style>
+    :root {
+      --primary: #6e8efb;
+      --bg: #f5f7fb;
+      --user: #dcf8c6;
+      --bot: #ffffff;
+      --text: #333;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: linear-gradient(135deg, #6e8efb, #a777e3);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text);
+    }
+
+    .container {
+      width: 980px;
+      max-width: 95%;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      overflow: hidden;
+    }
+
+    /* Left pane: form */
+    .left {
+      background: var(--bg);
+      border-right: 1px solid #e6e9f2;
+      padding: 20px;
+    }
+
+    .header {
+      background: var(--primary);
+      color: #fff;
+      padding: 16px;
+      font-weight: 600;
+      text-align: center;
+      border-radius: 10px;
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 6px;
+      color: #555;
+    }
+
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d9deea;
+      border-radius: 10px;
+      outline: none;
+      background: #fff;
+      font-size: 14px;
+    }
+
+    textarea { resize: vertical; min-height: 80px; }
+
+    .btn {
+      display: inline-block;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 10px;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* Right pane: chat */
+    .right {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .chat-header {
+      background: var(--primary);
+      color: #fff;
+      padding: 16px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .chat-box {
+      flex: 1;
+      padding: 16px;
+      background: #f7f8fc;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .message {
+      max-width: 70%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      word-wrap: break-word;
+      font-size: 14px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: var(--user);
+    }
+
+    .message.bot {
+      align-self: flex-start;
+      background: var(--bot);
+    }
+
+    .meta {
+      font-size: 11px;
+      color: #777;
+      margin-top: 6px;
+      text-align: right;
+    }
+
+    /* Footer input (optional quick send) */
+    .input-row {
+      display: flex;
+      gap: 8px;
+      padding: 12px;
+      border-top: 1px solid #e6e9f2;
+      background: #fff;
+    }
+
+    .input-row input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid #d9deea;
+      border-radius: 10px;
+      outline: none;
+    }
+
+    .input-row button {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Utility */
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    @media (max-width: 800px) {
+      .container { grid-template-columns: 1fr; }
+      .left { border-right: none; border-bottom: 1px solid #e6e9f2; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Left: Form like your product form -->
+    <div class="left">
+      <div class="header">🎯 Compose message</div>
+      <form id="chatForm">
+        <div class="form-group">
+          <label for="sender">Sender:</label>
+          <select id="sender" name="sender" required>
+            <option value="user" selected>You</option>
+            <option value="bot">Bot</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="message">Message:</label>
+          <textarea id="message" name="message" placeholder="Type your message..." required></textarea>
+        </div>
+
+        <div class="row">
+          <button type="submit" class="btn">Add to chat</button>
+          <button type="button" id="clearBtn" class="btn" style="background:#ef476f;">Clear chat</button>
+        </div>
+      </form>
+
+      <div style="margin-top:16px;">
+        <div class="header" style="background:#a777e3;">🗂 Seed sample replies</div>
+        <div class="form-group">
+          <button type="button" class="btn" id="seedBtn">Seed bot replies</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Chat panel -->
+    <div class="right">
+      <div class="chat-header">💬 Chat panel</div>
+      <div class="chat-box" id="chatBox"></div>
+
+      <!-- Quick send like WhatsApp input -->
+      <div class="input-row">
+        <input type="text" id="quickInput" placeholder="Type and press Enter..." />
+        <button id="quickSend">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script with message data array (like your product data) -->
+  <script>
+    // Message data array, similar to your products
+    const messages = [
+      { id: 1, sender: "bot", text: "Hey! I’m your chat assistant.", timestamp: Date.now() - 600000 },
+      { id: 2, sender: "user", text: "Hi! Show me how this works.", timestamp: Date.now() - 580000 },
+      { id: 3, sender: "bot", text: "Type a message and press Send. I’ll reply soon.", timestamp: Date.now() - 560000 }
+    ];
+
+    const chatBox = document.getElementById("chatBox");
+    const chatForm = document.getElementById("chatForm");
+    const quickInput = document.getElementById("quickInput");
+    const quickSend = document.getElementById("quickSend");
+    const senderSelect = document.getElementById("sender");
+    const messageField = document.getElementById("message");
+    const clearBtn = document.getElementById("clearBtn");
+    const seedBtn = document.getElementById("seedBtn");
+
+    // Render all messages
+    function renderChat() {
+      chatBox.innerHTML = "";
+      messages.forEach(m => {
+        const bubble = document.createElement("div");
+        bubble.className = `message ${m.sender}`;
+        bubble.textContent = m.text;
+
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        const time = new Date(m.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        meta.textContent = `${m.sender === "user" ? "You" : "Bot"} • ${time}`;
+
+        bubble.appendChild(meta);
+        chatBox.appendChild(bubble);
+      });
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Add a single message
+    function addMessage(sender, text) {
+      const id = messages.length ? messages[messages.length - 1].id + 1 : 1;
+      messages.push({ id, sender, text, timestamp: Date.now() });
+      renderChat();
+    }
+
+    // Simple bot auto-reply
+    function botReply() {
+      const replies = [
+        "That’s interesting!",
+        "Tell me more!",
+        "Nice to hear from you 😊",
+        "I’m just a demo bot 🤖",
+        "Let’s keep chatting!",
+        "Got any cool stories to share?",
+        "Beep boop! Message received.",
+        "If I had hands, I’d high-five you!"
+      ];
+      const reply = replies[Math.floor(Math.random() * replies.length)];
+      setTimeout(() => addMessage("bot", reply), 600);
+    }
+
+    // Handle form submit
+    chatForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const sender = senderSelect.value;
+      const text = messageField.value.trim();
+      if (!text) return;
+
+      addMessage(sender, text);
+      messageField.value = "";
+
+      if (sender === "user") botReply();
+    });
+
+    // Quick input row
+    quickSend.addEventListener("click", () => {
+      const text = quickInput.value.trim();
+      if (!text) return;
+      addMessage("user", text);
+      quickInput.value = "";
+      botReply();
+    });
+
+    quickInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") quickSend.click();
+    });
+
+    // Clear chat
+    clearBtn.addEventListener("click", () => {
+      messages.length = 0;
+      renderChat();
+    });
+
+    // Seed a few bot messages
+    seedBtn.addEventListener("click", () => {
+      const seed = [
+        "Welcome! Ask me anything.",
+        "Pro tip: Try sending a quick message below.",
+        "I can reply with different moods!"
+      ];
+      seed.forEach(t => addMessage("bot", t));
+    });
+
+    // Initial render
+    renderChat();
+  </script>
+</body>
+</html>
