@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Random Quote Generator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #6c63ff, #48c6ef);
+      margin: 0;
+    }
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+      text-align: center;
+      max-width: 500px;
+      width: 90%;
+      animation: fadeIn 0.6s ease-in-out;
+    }
+    h1 {
+      margin-bottom: 20px;
+      color: #6c63ff;
+      font-size: 2em;
+    }
+    #quote {
+      font-size: 1.3em;
+      margin-bottom: 15px;
+      color: #333;
+      line-height: 1.5;
+    }
+    #author {
+      font-size: 1em;
+      font-style: italic;
+      color: #555;
+      margin-bottom: 25px;
+    }
+    button {
+      padding: 12px 25px;
+      border: none;
+      background: #6c63ff;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #574fd6;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💡 Random Quote Generator</h1>
+    <p id="quote">Click the button to get inspired!</p>
+    <p id="author"></p>
+    <button onclick="newQuote()">New Quote</button>
+  </div>
+
+  <script>
+    const quotes = [
+      { text: "The best way to get started is to quit talking and begin doing.", author: "Walt Disney" },
+      { text: "Don’t let yesterday take up too much of today.", author: "Will Rogers" },
+      { text: "It’s not whether you get knocked down, it’s whether you get up.", author: "Vince Lombardi" },
+      { text: "If you are working on something exciting, it will keep you motivated.", author: "Steve Jobs" },
+      { text: "Success is not in what you have, but who you are.", author: "Bo Bennett" },
+      { text: "Opportunities don't happen, you create them.", author: "Chris Grosser" },
+      { text: "The harder you work for something, the greater you’ll feel when you achieve it.", author: "Unknown" },
+      { text: "Dream bigger. Do bigger.", author: "Unknown" },
+      { text: "Don’t watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+      { text: "Great things never come from comfort zones.", author: "Unknown" },
+      { text: "Push yourself, because no one else is going to do it for you.", author: "Unknown" },
+      { text: "Success doesn’t just find you. You have to go out and get it.", author: "Unknown" },
+      { text: "The key to success is to focus on goals, not obstacles.", author: "Unknown" },
+      { text: "Believe you can and you’re halfway there.", author: "Theodore Roosevelt" },
+      { text: "Act as if what you do makes a difference. It does.", author: "William James" },
+      { text: "Quality means doing it right when no one is looking.", author: "Henry Ford" },
+      { text: "Either you run the day, or the day runs you.", author: "Jim Rohn" },
+      { text: "Don’t be afraid to give up the good to go for the great.", author: "John D. Rockefeller" },
+      { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+      { text: "Hustle in silence and let your success make the noise.", author: "Unknown" },
+      { text: "Do what you can with all you have, wherever you are.", author: "Theodore Roosevelt" },
+      { text: "Don’t wait for opportunity. Create it.", author: "George Bernard Shaw" },
+      { text: "It always seems impossible until it’s done.", author: "Nelson Mandela" },
+      { text: "If you want to achieve greatness stop asking for permission.", author: "Anonymous" },
+      { text: "Success is not final; failure is not fatal: It is the courage to continue that counts.", author: "Winston Churchill" }
+    ];
+
+    function newQuote() {
+      const randomIndex = Math.floor(Math.random() * quotes.length);
+      document.getElementById("quote").innerText = quotes[randomIndex].text;
+      document.getElementById("author").innerText = "- " + quotes[randomIndex].author;
+    }
+  </script>
+</body>
+</html>
